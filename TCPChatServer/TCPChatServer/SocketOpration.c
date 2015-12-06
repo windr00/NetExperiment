@@ -9,16 +9,16 @@
 #include "SocketOpration.h"
 
 void ReceiveData(int clientSock, char * buffer){
-    int recvLength = 0;
-    if ((recvLength = recv(clientSock, buffer, MAX_RECV_BYTES, 0) < 0)) {
+    if (recv(clientSock, buffer, MAX_RECV_BYTES, 0) < 0) {
         printf("client sock: %d recv error\n",clientSock);
         exit(-1);
     }
-    buffer[recvLength] = '\0';
+    printf("recv from %d content: %s\n", clientSock, buffer);
 }
 
 void SendData(int clientSock, const char * buffer) {
     long sendLength = 0;
+    printf("send to: %d content: %s\n", clientSock, buffer);
     if ((sendLength = send(clientSock, buffer, strlen(buffer), 0)) < 0){
         printf("client sock: %d send failed\n", clientSock);
         exit(-1);

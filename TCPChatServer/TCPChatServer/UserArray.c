@@ -8,6 +8,14 @@
 
 #include "UserArray.h"
 
+void InitialUserArray() {
+    for (int i = 0; i < 256;i++) {
+        userArray[i].clientSockNumber = -1;
+        userArray[i].name = NULL;
+        userArray[i].tempData = NULL;
+    }
+}
+
 
 void InsertUser(const char * name, int *number, int clientSockNumber) {
     int i = 0;

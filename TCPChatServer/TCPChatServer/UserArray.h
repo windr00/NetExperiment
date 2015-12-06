@@ -19,6 +19,7 @@ struct User {
 
 static struct User userArray[256];
 
+void InitialUserArray();
 
 void InsertUser(const char * name, int *number, int clientSockNumber);
 

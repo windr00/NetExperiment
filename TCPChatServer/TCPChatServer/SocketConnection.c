@@ -24,6 +24,8 @@ int InitialServer() {
     memset(&clientAddress, 0, sizeof(clientAddress));
     clientSockLength = sizeof(clientAddress);
     
+    InitialUserArray();
+    
     if ((serverSock = socket(AF_INET, SOCK_STREAM, TCP)) < 0) {
         printf("socket create error\n");
         return -1;

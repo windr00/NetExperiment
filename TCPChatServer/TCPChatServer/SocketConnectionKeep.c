@@ -29,14 +29,17 @@ void Initial(int clientSock) {
     ReceiveData(clientSock, RecvBuffer);
     if (strcmp(RecvBuffer, CLIENT_CONNECTION_STR) == 0) {
         if (!JudgeIfHasEmptySlot()) {
+            printf("no empty slot\n");
             SendData(clientSock, CLIENT_REFUSE_STR);
             exit(0);
         }
         else {
+            printf("initial\n");
             SendData(clientSock, CLIENT_ACCEPT_STR);
         }
     }
     else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_NAME_STR)), CLIENT_NAME_STR) == 0) {
+        printf("normal receive\n");
         char * name = StrCut(RecvBuffer, (int)strlen(CLIENT_NAME_STR), strlen(RecvBuffer) - strlen(CLIENT_NAME_STR));
         int arrayNumber = 0;
         InsertUser(name, &arrayNumber, clientSock);
