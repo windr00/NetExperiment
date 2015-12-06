@@ -24,31 +24,6 @@ const char * CLIENT_SENT_TO = "TO";
 
 const char * CLIENT_QUIT = "QUIT";
 
-void Initial(int clientSock) {
-    
-    ReceiveData(clientSock, RecvBuffer);
-    if (strcmp(RecvBuffer, CLIENT_CONNECTION_STR) == 0) {
-        if (!JudgeIfHasEmptySlot()) {
-            printf("no empty slot\n");
-            SendData(clientSock, CLIENT_REFUSE_STR);
-            exit(0);
-        }
-        else {
-            printf("initial\n");
-            SendData(clientSock, CLIENT_ACCEPT_STR);
-        }
-    }
-    else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_NAME_STR)), CLIENT_NAME_STR) == 0) {
-        printf("normal receive\n");
-        char * name = StrCut(RecvBuffer, (int)strlen(CLIENT_NAME_STR), strlen(RecvBuffer) - strlen(CLIENT_NAME_STR));
-        int arrayNumber = 0;
-        InsertUser(name, &arrayNumber, clientSock);
-        SendData(clientSock, CLIENT_CONNECTION_STR);
-        
-    }
-}
-
-
 void DoControl(int arrayNumber) {
     while (1) {
         ReceiveData(GetUserAddress(arrayNumber), RecvBuffer);
@@ -70,6 +45,40 @@ void DoControl(int arrayNumber) {
         }
     }
 }
+
+void Initial(int clientSock) {
+    while (1) {
+        ReceiveData(clientSock, RecvBuffer);
+        printf("%ld, %ld\n", strlen(RecvBuffer), strlen(CLIENT_CONNECTION_STR));
+        if (strcmp(RecvBuffer, CLIENT_CONNECTION_STR) == 0) {
+            printf("connection received\n");
+            if (!JudgeIfHasEmptySlot()) {
+                printf("no empty slot\n");
+                SendData(clientSock, CLIENT_REFUSE_STR);
+                exit(0);
+            }
+            else {
+                printf("initial\n");
+                SendData(clientSock, CLIENT_ACCEPT_STR);
+            }
+        }
+        else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_NAME_STR)), CLIENT_NAME_STR) == 0) {
+            printf("normal receive\n");
+            char * name = StrCut(RecvBuffer, (int)strlen(CLIENT_NAME_STR), strlen(RecvBuffer) - strlen(CLIENT_NAME_STR));
+            printf("new user name: %s\n", name);
+            int arrayNumber = 0;
+            InsertUser(name, &arrayNumber, clientSock);
+            printf("new user number: %d\n", arrayNumber);
+            SendData(clientSock, CLIENT_CONNECTION_STR);
+            printf("initial returned\n");
+            DoControl(arrayNumber);
+            break;
+        }
+        printf("do nothing\n");
+    }
+    
+}
+
 
 
 

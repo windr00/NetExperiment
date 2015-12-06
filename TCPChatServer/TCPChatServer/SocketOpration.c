@@ -13,6 +13,8 @@ void ReceiveData(int clientSock, char * buffer){
         printf("client sock: %d recv error\n",clientSock);
         exit(-1);
     }
+    printf("length: %ld\n", strlen(buffer));
+    buffer[strlen(buffer) - 2] = 0;
     printf("recv from %d content: %s\n", clientSock, buffer);
 }
 

@@ -34,6 +34,7 @@ void InsertUser(const char * name, int *number, int clientSockNumber) {
 int JudgeIfHasEmptySlot() {
     for (int i = 0;i < 256;i++) {
         if (userArray[i].clientSockNumber == -1) {
+            printf("has empty user slot\n");
             return 1;
         }
     }

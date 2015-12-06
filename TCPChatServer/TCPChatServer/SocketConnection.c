@@ -55,6 +55,7 @@ int InitialServer() {
     
     if (!fork()) {
         while (1) {
+            system("sleep 1");
             int count = 0;
             int * array = GetAllOnlineUserNumber(&count);
             for (int i = 0;i < count;i++) {
