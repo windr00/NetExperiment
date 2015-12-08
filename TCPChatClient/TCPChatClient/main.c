@@ -41,13 +41,17 @@ char recvBuffer[MAX_RECV_LENGTH] = {0};
 
 long recvLength = -1;
 
+int user = -1;
+
+int sock = -1;
+
 void * recvLoop (void * sock) {
     while (1) {
         if ((recvLength = recv(*(int *)sock, recvBuffer, MAX_RECV_LENGTH, 0)) < 0) {
             continue;
         }
         recvBuffer[recvLength] = 0;
-        printf("\nreceived: %s> ", recvBuffer);
+        printf("\nreceived:\n%s> ", recvBuffer);
         if (strcmp(recvBuffer, CLIENT_REFUSE_STR) == 0) {
             printf("user is currently not on the line\n");
             exit(0);
@@ -58,7 +62,6 @@ void * recvLoop (void * sock) {
 
 
 int main(int argc, const char * argv[]) {
-    int sock = -1;
     
     char ipAddress[32] = {0};
     
@@ -68,7 +71,6 @@ int main(int argc, const char * argv[]) {
     
     int port = 0;
     
-    int user = 0;
     
     struct sockaddr_in sockAddress;
     memset(&sockAddress, 0, sizeof(sockAddress));
@@ -136,39 +138,44 @@ int main(int argc, const char * argv[]) {
         return 0;
     }
     
-    if (send(sock, CLIENT_REQUEST_NAME_LIST, strlen(CLIENT_REQUEST_NAME_LIST), 0) < 0) {
-        printf("fetch online user error\n");
-        return -7;
-    }
-    
-    if ((recvLength = recv(sock, recvBuffer, MAX_RECV_LENGTH, 0)) < 0) {
-        printf("fetch online user error\n");
-        return -8;
-    }
-    
-    recvBuffer[recvLength] = 0;
-    
-    printf("online users:\n");
-    
-    printf("%s",recvBuffer);
-    
-    printf("please choose a user by number: ");
-    
-    scanf("%d", &user);
     
     pthread_t recvThread;
+    
     
     if (pthread_create(&recvThread, NULL, recvLoop, &sock)) {
         printf("recv loop thread creation failed\n");
         exit(-9);
     }
     
-    printf("input your words after '>' \n");
+    
+    
+    printf("input your words after '>' (-l for user list, -sl to select user by number, -q to quit)\n");
     
     while (1) {
         printf("> ");
         scanf("%s",message);
+        if (strcmp(message, "-l") == 0) {
+            if (send(sock, CLIENT_REQUEST_NAME_LIST, strlen(CLIENT_REQUEST_NAME_LIST), 0) < 0) {
+                printf("fetch online user error\n");\
+                exit(-7);
+            }
+            
+            continue;
+        }
+        if (strcmp(message, "-q") == 0) {
+            sprintf(sendBuffer, "%s",CLIENT_QUIT);
+        }
+        else if (strcmp(message, "-sl") == 0) {
+            printf("input user number after '> '\n> ");
+            scanf("%d", &user);
+            continue;
+        }
+        if (user == -1) {
+            printf("please input -l to fetch user list and then use -sl to specific one user to send message to.\n");
+            continue;
+        }
         sprintf(sendBuffer, "%s %d %s", CLIENT_SENT_TO, user, message);
+        
         if (send(sock, sendBuffer, strlen(sendBuffer), 0) < 0) {
             printf("message send error\n");
             continue;

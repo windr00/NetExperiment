@@ -96,22 +96,20 @@ void ClearUserReceivedData (int number) {
 }
 
 int * GetAllOnlineUserNumber (int * count) {
-    int * array = malloc(sizeof(int) * 1);
+    int array[256] = {0};
     int * temp = NULL;
     int c = 0;
     for (int i = 0;i < 256;i++) {
         if (userArray[i].clientSockNumber != -1) {
             c++;
-            temp = array;
-            array = malloc(sizeof(int) * (c + 1));
-            for (int i = 0;i < c;i++) {
-                array[i] = temp[i];
-            }
-            free(temp);
             array[c] = i;
         }
     }
     //printf("getAllOnlineUserNumber: result count: %d\n", c);
     * count = c;
-    return array;
+    temp = (int *)malloc(sizeof(int) * c);
+    for (int i = 0;i < c;i++) {
+        temp[i] = array[i];
+    }
+    return temp;
 }

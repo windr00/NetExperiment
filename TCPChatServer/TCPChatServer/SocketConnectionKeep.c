@@ -10,6 +10,8 @@
 
 char RecvBuffer[MAX_RECV_BYTES];
 
+char SendBuffer[MAX_SEND_BYTES];
+
 const char * CLIENT_CONNECTION_STR = "CONNECTION";
 
 const char * CLIENT_NAME_STR = "NAME";
@@ -29,7 +31,8 @@ void DoControl(int arrayNumber) {
     while (1) {
         ReceiveData(GetUserAddress(arrayNumber), RecvBuffer);
         if (strcmp(RecvBuffer, CLIENT_REQUEST_NAME_LIST) == 0) {
-            SendData(GetUserAddress(arrayNumber), GetAllOnlineUserName());
+            sprintf(SendBuffer, "USER LIST \n%s", GetAllOnlineUserName());
+            SendData(GetUserAddress(arrayNumber), SendBuffer);
         }
         else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_SENT_TO)), CLIENT_SENT_TO) == 0) {
             int targetNUmber = 0;
