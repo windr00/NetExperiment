@@ -13,8 +13,8 @@
 
 struct User {
     int clientSockNumber;
-    char * name;
-    char * tempData;
+    char name[4096];
+    char tempData[4096];
 };
 
 static struct User userArray[256];

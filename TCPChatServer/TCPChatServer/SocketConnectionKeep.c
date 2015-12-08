@@ -25,6 +25,7 @@ const char * CLIENT_SENT_TO = "TO";
 const char * CLIENT_QUIT = "QUIT";
 
 void DoControl(int arrayNumber) {
+    printf("doControl: user entered ONLINE mode, client number in user array: %d\n", arrayNumber);
     while (1) {
         ReceiveData(GetUserAddress(arrayNumber), RecvBuffer);
         if (strcmp(RecvBuffer, CLIENT_REQUEST_NAME_LIST) == 0) {
@@ -32,16 +33,19 @@ void DoControl(int arrayNumber) {
         }
         else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_SENT_TO)), CLIENT_SENT_TO) == 0) {
             int targetNUmber = 0;
-            sscanf(StrCut(RecvBuffer, (int)strlen(CLIENT_SENT_TO), strlen(RecvBuffer) - strlen(CLIENT_SENT_TO)), "%d", &targetNUmber);
+            char str[MAX_RECV_BYTES] = {0};
+            sscanf(StrCut(RecvBuffer, strlen(CLIENT_SENT_TO) + 1, strlen(RecvBuffer) - strlen(CLIENT_SENT_TO) - 1), "%d%s", &targetNUmber,RecvBuffer);
             if (!JudgeUserExistence(targetNUmber)) {
+                printf("doControl: user specified by number: %d does not exist.\n", targetNUmber);
                 SendData(GetUserAddress(arrayNumber), CLIENT_REFUSE_STR);
-                continue;
+                pthread_exit(NULL);
             }
-            InsertReceivedDataToUser(targetNUmber, RecvBuffer);
+            sprintf(str, "from %s: %s\n", GetUserName(arrayNumber), RecvBuffer);
+            InsertReceivedDataToUser(targetNUmber, str);
             continue;
         }
         else if (strcmp(RecvBuffer, CLIENT_QUIT)) {
-            exit(0);
+            pthread_exit(NULL);
         }
     }
 }
@@ -49,32 +53,35 @@ void DoControl(int arrayNumber) {
 void Initial(int clientSock) {
     while (1) {
         ReceiveData(clientSock, RecvBuffer);
-        printf("%ld, %ld\n", strlen(RecvBuffer), strlen(CLIENT_CONNECTION_STR));
         if (strcmp(RecvBuffer, CLIENT_CONNECTION_STR) == 0) {
-            printf("connection received\n");
+            printf("initial: connection received\n");
             if (!JudgeIfHasEmptySlot()) {
-                printf("no empty slot\n");
+                printf("initial: no empty slot\n");
                 SendData(clientSock, CLIENT_REFUSE_STR);
-                exit(0);
+                pthread_exit(NULL);
             }
             else {
-                printf("initial\n");
+                printf("initial: has empty slot\n");
                 SendData(clientSock, CLIENT_ACCEPT_STR);
             }
         }
         else if (strcmp(StrCut(RecvBuffer, 0, strlen(CLIENT_NAME_STR)), CLIENT_NAME_STR) == 0) {
-            printf("normal receive\n");
-            char * name = StrCut(RecvBuffer, (int)strlen(CLIENT_NAME_STR), strlen(RecvBuffer) - strlen(CLIENT_NAME_STR));
-            printf("new user name: %s\n", name);
+            printf("initial: normal receive\n");
+            char * name = StrCut(RecvBuffer, strlen(CLIENT_NAME_STR) + 1, strlen(RecvBuffer) - strlen(CLIENT_NAME_STR) - 1);
+            printf("initial: new user name: %s\n", name);
             int arrayNumber = 0;
             InsertUser(name, &arrayNumber, clientSock);
-            printf("new user number: %d\n", arrayNumber);
+            printf("initial: new user number: %d\n", arrayNumber);
             SendData(clientSock, CLIENT_CONNECTION_STR);
-            printf("initial returned\n");
+            printf("initial: user is ONLINE, socket number: %d\n", clientSock);
             DoControl(arrayNumber);
             break;
         }
-        printf("do nothing\n");
+        else {
+            printf("initial: unknown client state\n");
+            pthread_exit(NULL);
+        }
+        printf("initial: loop once ended\n");
     }
     
 }
@@ -83,8 +90,9 @@ void Initial(int clientSock) {
 
 
 
-void DispatchConnection(int clientSock) {
-    if (!fork()) {
-        Initial(clientSock);
-    }
+void * DispatchConnection(void * clientSock) {
+    //if (!fork()) {
+    Initial(* (int *)clientSock);
+    return NULL;
+    //}
 }

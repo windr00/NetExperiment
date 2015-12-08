@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #define MAX_SEND_LENGTH 4096
 #define MAX_RECV_LENGTH 4096
@@ -33,6 +34,29 @@ const char * CLIENT_SENT_TO = "TO";
 
 const char * CLIENT_QUIT = "QUIT";
 
+
+char sendBuffer[MAX_SEND_LENGTH] = {0};
+
+char recvBuffer[MAX_RECV_LENGTH] = {0};
+
+long recvLength = -1;
+
+void * recvLoop (void * sock) {
+    while (1) {
+        if ((recvLength = recv(*(int *)sock, recvBuffer, MAX_RECV_LENGTH, 0)) < 0) {
+            continue;
+        }
+        recvBuffer[recvLength] = 0;
+        printf("\nreceived: %s> ", recvBuffer);
+        if (strcmp(recvBuffer, CLIENT_REFUSE_STR) == 0) {
+            printf("user is currently not on the line\n");
+            exit(0);
+        }
+    }
+    return NULL;
+}
+
+
 int main(int argc, const char * argv[]) {
     int sock = -1;
     
@@ -42,12 +66,6 @@ int main(int argc, const char * argv[]) {
     
     char message[MAX_SEND_LENGTH] = {0};
     
-    char sendBuffer[MAX_SEND_LENGTH] = {0};
-    
-    char recvBuffer[MAX_RECV_LENGTH] = {0};
-    
-    long recvLength = -1;
-    
     int port = 0;
     
     int user = 0;
@@ -55,11 +73,11 @@ int main(int argc, const char * argv[]) {
     struct sockaddr_in sockAddress;
     memset(&sockAddress, 0, sizeof(sockAddress));
     
-    if ((sock = socket(AF_INET, SOCK_STREAM, TCP) < 0)) {
+    if ((sock = socket(AF_INET, SOCK_STREAM, TCP)) < 0) {
         printf("socket error\n");
         return -1;
     }
-    
+    printf("client sock: %d\n", sock);
     printf("enter server ip address: ");
     scanf("%s", ipAddress);
     printf("enter server port number: ");
@@ -99,7 +117,9 @@ int main(int argc, const char * argv[]) {
     
     scanf("%s",name);
     
-    if (send(sock, CLIENT_NAME_STR, strlen(CLIENT_NAME_STR),0) < 0) {
+    sprintf(sendBuffer, "%s %s", CLIENT_NAME_STR, name);
+    
+    if (send(sock, sendBuffer, strlen(sendBuffer),0) < 0) {
         printf("user name specifying error\n");
         return -10;
     }
@@ -136,14 +156,11 @@ int main(int argc, const char * argv[]) {
     
     scanf("%d", &user);
     
-    if (!fork()) {
-        while (1) {
-            if ((recvLength = recv(sock, recvBuffer, MAX_RECV_LENGTH, 0)) < 0) {
-                continue;
-            }
-            recvBuffer[recvLength] = 0;
-            printf("\nreceived: %s\n", recvBuffer);
-        }
+    pthread_t recvThread;
+    
+    if (pthread_create(&recvThread, NULL, recvLoop, &sock)) {
+        printf("recv loop thread creation failed\n");
+        exit(-9);
     }
     
     printf("input your words after '>' \n");

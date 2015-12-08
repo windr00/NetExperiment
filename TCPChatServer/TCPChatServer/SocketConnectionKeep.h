@@ -15,6 +15,6 @@
 
 static long recvLength = 0;
 
-void DispatchConnection(int clientSock);
+void * DispatchConnection(void * clientSock);
 
 #endif /* SocketConnectionKeep_h */

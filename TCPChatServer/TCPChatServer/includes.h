@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #include "SocketConnection.h"
 #include "UserArray.h"
@@ -27,6 +28,7 @@
 #define MAX_SEND_BYTES 4096
 #define MAX_RECV_BYTES 4096
 #define TCP 6
+
 
 
 

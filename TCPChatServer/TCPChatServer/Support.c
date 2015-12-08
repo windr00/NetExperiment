@@ -8,11 +8,13 @@
 
 #include "Support.h"
 
-char * StrCut(const char * original, int startIndex, long cutLength) {
+char * StrCut(const char * original, long startIndex, long cutLength) {
+    printf("strCut: start index: %ld, length: %ld\n", startIndex, cutLength);
     char * cut = malloc(cutLength + 1);
-    for (long i = startIndex; i < cutLength;i++) {
-        cut[i - startIndex] = original[i];
+    memset(cut, 0, cutLength + 1);
+    for (long i = 0; i < cutLength;i++) {
+        cut[i] = original[i + startIndex];
     }
-    cut[cutLength] = 0;
+    printf("strCut: result: '%s'\n", cut);
     return cut;
 }

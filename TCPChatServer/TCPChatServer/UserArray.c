@@ -11,8 +11,8 @@
 void InitialUserArray() {
     for (int i = 0; i < 256;i++) {
         userArray[i].clientSockNumber = -1;
-        userArray[i].name = NULL;
-        userArray[i].tempData = NULL;
+        memset(userArray[i].name, 0, MAX_RECV_BYTES);
+        memset(userArray[i].tempData, 0, MAX_RECV_BYTES);
     }
 }
 
@@ -24,9 +24,8 @@ void InsertUser(const char * name, int *number, int clientSockNumber) {
             *number = i;
             userArray[i].clientSockNumber = clientSockNumber;
             strcpy(userArray[i].name, name);
-            char * temp = malloc(2);
-            strcpy(temp, "");
-            userArray[i].tempData = temp;
+            printf("insertUser: socket: %d, array number: %d\n", clientSockNumber, *number);
+            break;
         }
     }
 }
@@ -43,14 +42,16 @@ int JudgeIfHasEmptySlot() {
 
 void DeleteUser(int number) {
     userArray[number].clientSockNumber = -1;
-    free(userArray[number].name);
+    memset(userArray[number].name, 0, MAX_RECV_BYTES);
+    memset(userArray[number].tempData, 0, MAX_RECV_BYTES);
 }
 
 int JudgeUserExistence(int number) {
     if (userArray[number].clientSockNumber == -1) {
-        return 1;
+        printf("judgeUserExistence: user with number: %d does not exist.\n", number);
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 int GetUserAddress(int number) {
@@ -66,8 +67,8 @@ char * GetAllOnlineUserName() {
     memset(retValue, 0, 1);
     char * temp = NULL;
     for (int i = 0;i < 256;i++) {
-        if (userArray[i].name != NULL) {
-            char tempStr[4096];
+        if (userArray[i].clientSockNumber != -1) {
+            char tempStr[MAX_RECV_BYTES];
             sprintf(tempStr, "%d %s\n",i,userArray[i].name);
             temp = retValue;
             retValue = malloc(strlen(temp) + strlen(tempStr) + 1);
@@ -81,11 +82,8 @@ char * GetAllOnlineUserName() {
 }
 
 void InsertReceivedDataToUser(int number, const char * receivedData) {
-    char * temp = userArray[number].tempData;
-    userArray[number].tempData = malloc(strlen(temp) + strlen(receivedData) + 1);
-    memset(userArray[number].tempData, 0, strlen(temp) + strlen(receivedData) + 1);
-    strcat(userArray[number].tempData, temp);
     strcat(userArray[number].tempData, receivedData);
+    printf("insertReceivedDataToUser: user number: %d, total data: %s\n", number, userArray[number].tempData);
 }
 
 char * GetUserReceivedData (int number) {
@@ -93,10 +91,8 @@ char * GetUserReceivedData (int number) {
 }
 
 void ClearUserReceivedData (int number) {
-    free(userArray[number].tempData);
-    char * temp = malloc(2);
-    strcpy(temp, "");
-    userArray[number].tempData = temp;
+    //printf("clearUserReceivedData: data of number: %d cleared\n", number);
+    memset(userArray[number].tempData, 0, MAX_RECV_BYTES);
 }
 
 int * GetAllOnlineUserNumber (int * count) {
@@ -104,7 +100,7 @@ int * GetAllOnlineUserNumber (int * count) {
     int * temp = NULL;
     int c = 0;
     for (int i = 0;i < 256;i++) {
-        if (userArray[i].tempData) {
+        if (userArray[i].clientSockNumber != -1) {
             c++;
             temp = array;
             array = malloc(sizeof(int) * (c + 1));
@@ -115,6 +111,7 @@ int * GetAllOnlineUserNumber (int * count) {
             array[c] = i;
         }
     }
+    //printf("getAllOnlineUserNumber: result count: %d\n", c);
     * count = c;
     return array;
 }

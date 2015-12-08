@@ -13,6 +13,19 @@ char recvBuffer[MAX_RECV_BYTES] = {0};
 
 char sendBuffer[MAX_SEND_BYTES] = {0};
 
+void * sendLoop (void * arg) {
+    while (1) {
+        system("sleep 1");
+        int count = 0;
+        int * array = GetAllOnlineUserNumber(&count);
+        //printf("sendLoop: loop\n");
+        for (int i = 0;i < count;i++) {
+            SendData(GetUserAddress(array[i]), GetUserReceivedData(array[i]));
+            ClearUserReceivedData(array[i]);
+        }
+    }
+    return NULL;
+}
 
 int InitialServer() {
     memset(&serverSockAddress, 0, sizeof(serverSockAddress));
@@ -53,16 +66,10 @@ int InitialServer() {
     
     printf("start listening on port %d\n", port);
     
-    if (!fork()) {
-        while (1) {
-            system("sleep 1");
-            int count = 0;
-            int * array = GetAllOnlineUserNumber(&count);
-            for (int i = 0;i < count;i++) {
-                SendData(GetUserAddress(array[i]), GetUserReceivedData(array[i]));
-                ClearUserReceivedData(array[i]);
-            }
-        }
+    pthread_t sendThread;
+    if (pthread_create(&sendThread, NULL, sendLoop, NULL)) {
+        printf("send loop thread creation failed.\n");
+        exit(-4);
     }
     
     printf("start accepting\n");
@@ -74,7 +81,10 @@ int InitialServer() {
             continue;
         }
         printf("accepted: %d\n", clientSock);
-        DispatchConnection(clientSock);
+        pthread_t acceptThread;
+        pthread_create(&acceptThread, NULL, DispatchConnection, &clientSock);
     }
 }
+
+
 

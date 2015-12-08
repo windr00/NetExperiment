@@ -11,6 +11,6 @@
 
 #include "includes.h"
 
-char * StrCut(const char * original, int startIndex, long cutLength);
+char * StrCut(const char * original, long startIndex, long cutLength);
 
 #endif /* Support_h */
