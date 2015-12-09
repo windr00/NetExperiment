@@ -18,6 +18,7 @@ void * sendLoop (void * arg) {
         system("sleep 1");
         int count = 0;
         int * array = GetAllOnlineUserNumber(&count);
+        
         //printf("sendLoop: count: %d\n",count);
         //printf("sendLoop: loop\n");
         for (int i = 0;i < count;i++) {
@@ -27,6 +28,7 @@ void * sendLoop (void * arg) {
     }
     return NULL;
 }
+
 
 int InitialServer() {
     memset(&serverSockAddress, 0, sizeof(serverSockAddress));

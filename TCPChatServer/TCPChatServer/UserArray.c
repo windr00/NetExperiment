@@ -101,8 +101,8 @@ int * GetAllOnlineUserNumber (int * count) {
     int c = 0;
     for (int i = 0;i < 256;i++) {
         if (userArray[i].clientSockNumber != -1) {
-            c++;
             array[c] = i;
+            c++;
         }
     }
     //printf("getAllOnlineUserNumber: result count: %d\n", c);

@@ -47,8 +47,14 @@ void DoControl(int arrayNumber) {
             InsertReceivedDataToUser(targetNUmber, str);
             continue;
         }
-        else if (strcmp(RecvBuffer, CLIENT_QUIT)) {
+        else if (strcmp(RecvBuffer, CLIENT_QUIT) == 0) {
+            printf("donControl: user %d deleted", arrayNumber);
+            DeleteUser(arrayNumber);
             pthread_exit(NULL);
+            break;
+        }
+        else {
+            printf("doControl: unkown client state\n");
         }
     }
 }

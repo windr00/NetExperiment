@@ -51,11 +51,15 @@ void * recvLoop (void * sock) {
             continue;
         }
         recvBuffer[recvLength] = 0;
-        printf("\nreceived:\n%s> ", recvBuffer);
-        if (strcmp(recvBuffer, CLIENT_REFUSE_STR) == 0) {
-            printf("user is currently not on the line\n");
-            exit(0);
+        if (strcmp(recvBuffer, "") == 0) {
+            continue;
         }
+        if (strcmp(recvBuffer, CLIENT_REFUSE_STR) == 0) {
+            printf(" ssend error user is currently not on the line\n");
+            continue;
+        }
+        printf("\nreceived:\n%s", recvBuffer);
+        fflush(stdout);
     }
     return NULL;
 }
@@ -149,10 +153,10 @@ int main(int argc, const char * argv[]) {
     
     
     
-    printf("input your words after '>' (-l for user list, -sl to select user by number, -q to quit)\n");
+    printf("input your words (-l for user list, -sl to select user by number, -q to quit)\n");
     
-    while (1) {
-        printf("> ");
+    while (strcmp(message, "-q")) {
+        
         scanf("%s",message);
         if (strcmp(message, "-l") == 0) {
             if (send(sock, CLIENT_REQUEST_NAME_LIST, strlen(CLIENT_REQUEST_NAME_LIST), 0) < 0) {
@@ -162,7 +166,7 @@ int main(int argc, const char * argv[]) {
             
             continue;
         }
-        if (strcmp(message, "-q") == 0) {
+        else if (strcmp(message, "-q") == 0) {
             sprintf(sendBuffer, "%s",CLIENT_QUIT);
         }
         else if (strcmp(message, "-sl") == 0) {
@@ -170,16 +174,20 @@ int main(int argc, const char * argv[]) {
             scanf("%d", &user);
             continue;
         }
-        if (user == -1) {
-            printf("please input -l to fetch user list and then use -sl to specific one user to send message to.\n");
-            continue;
+        else {
+            if (user == -1) {
+                printf("please input -l to fetch user list and then use -sl to specific one user to send message to.\n");
+                continue;
+            }
+            sprintf(sendBuffer, "%s %d %s", CLIENT_SENT_TO, user, message);
         }
-        sprintf(sendBuffer, "%s %d %s", CLIENT_SENT_TO, user, message);
         
         if (send(sock, sendBuffer, strlen(sendBuffer), 0) < 0) {
             printf("message send error\n");
             continue;
         }
+        
+        
     }
     return 0;
 }
